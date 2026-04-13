@@ -4,10 +4,7 @@
 
 ## Запуск
 
-1. Скопируй `.env.example` в `.env` и вставь свой ключ:
-   ```
-   cp .env.example .env
-   ```
+1. Скопируй `GROQ_API_KEY={YOUR_API_KEY}` в `.env` 
 
 2. Запусти:
    ```
