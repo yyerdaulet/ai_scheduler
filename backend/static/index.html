@@ -139,9 +139,34 @@
   }
 
   .link-row button:hover { color: #555; }
-  .link-form { display: grid; grid-template-columns: 1fr 1fr 1fr 44px 32px; gap: 5px; }
+  .link-form { display: grid; grid-template-columns: 1fr 1fr 90px 44px; gap: 5px; }
   .link-form input[type=number] { padding: 0 6px; text-align: center; }
   .links-total { font-size: 11px; color: #aaa; margin-top: 6px; }
+  .link-groups-picker { margin-top: 8px; }
+  .picker-label {
+    font-size: 10px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 6px;
+  }
+  .group-picker-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .group-toggle {
+    border: 1px solid #d7d7d4;
+    background: #fff;
+    color: #555;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: .15s ease;
+  }
+  .group-toggle:hover { background: #f5f5f4; }
+  .group-toggle.active {
+    background: #eaf3de;
+    border-color: #b7cf96;
+    color: #31590d;
+  }
 
   .exc-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
 
@@ -387,14 +412,17 @@
     </div>
 
     <div class="field">
-      <label>Связки <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;font-size:10px">препод · предмет · группа · ч/блок</span></label>
+      <label>Связки <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;font-size:10px">препод · предмет · группы · ч подряд на каждую группу</span></label>
       <div class="links-list" id="links-list"></div>
       <div class="link-form">
         <select id="link-teacher"><option value="">Препод</option></select>
-        <input id="link-subject" placeholder="Предмет" onkeydown="if(event.key==='Enter') addLink()">
-        <select id="link-group"><option value="">Группа</option></select>
+        <input id="link-subject" placeholder="Предмет" onkeydown="if(event.key==='Enter') addLinkBatch()">
         <input id="link-hours" type="number" min="1" max="8" value="2">
-        <button class="btn-add" onclick="addLink()">+</button>
+        <button class="btn-add" onclick="addLinkBatch()">+</button>
+      </div>
+      <div class="link-groups-picker">
+        <div class="picker-label">Группы для этой связки</div>
+        <div class="group-picker-row" id="link-groups-picker"></div>
       </div>
       <div class="links-total" id="links-total"></div>
     </div>
@@ -429,7 +457,7 @@
 </div>
 
 <script>
-const state = { teachers: [], groups: [], rooms: [], links: [], exceptions: [] };
+const state = { teachers: [], groups: [], rooms: [], links: [], exceptions: [], selectedLinkGroups: [] };
 let reasoningData = [];
 let showReasoning = false;
 let scheduleData = {};
@@ -495,32 +523,55 @@ function renderChips(type) {
 
 function updateLinkSelects() {
   const teacherSelect = document.getElementById("link-teacher");
-  const groupSelect = document.getElementById("link-group");
   const teacherValue = state.teachers.includes(teacherSelect.value) ? teacherSelect.value : "";
-  const groupValue = state.groups.includes(groupSelect.value) ? groupSelect.value : "";
 
   teacherSelect.innerHTML = '<option value="">Препод</option>' + state.teachers
     .map(teacher => `<option value="${escapeHtml(teacher)}"${teacher === teacherValue ? " selected" : ""}>${escapeHtml(teacher)}</option>`)
     .join("");
-
-  groupSelect.innerHTML = '<option value="">Группа</option>' + state.groups
-    .map(group => `<option value="${escapeHtml(group)}"${group === groupValue ? " selected" : ""}>${escapeHtml(group)}</option>`)
-    .join("");
+  state.selectedLinkGroups = state.selectedLinkGroups.filter(group => state.groups.includes(group));
+  renderGroupPicker();
 }
 
-function addLink() {
-  const teacher = document.getElementById("link-teacher").value;
-  const subject = document.getElementById("link-subject").value.trim();
-  const group = document.getElementById("link-group").value;
-  const hours = parseInt(document.getElementById("link-hours").value, 10) || 2;
-
-  if (!teacher || !subject || !group) {
+function renderGroupPicker() {
+  const picker = document.getElementById("link-groups-picker");
+  if (!state.groups.length) {
+    picker.innerHTML = '<span style="font-size:12px;color:#aaa">Сначала добавьте группы</span>';
     return;
   }
 
-  state.links.push({ teacher, subject, group, hours });
+  picker.innerHTML = state.groups.map(group => {
+    const active = state.selectedLinkGroups.includes(group) ? " active" : "";
+    return `<button type="button" class="group-toggle${active}" onclick="toggleLinkGroup('${String(group).replaceAll("'", "\\'")}')">${escapeHtml(group)}</button>`;
+  }).join("");
+}
+
+function toggleLinkGroup(group) {
+  if (state.selectedLinkGroups.includes(group)) {
+    state.selectedLinkGroups = state.selectedLinkGroups.filter(item => item !== group);
+  } else {
+    state.selectedLinkGroups.push(group);
+  }
+  renderGroupPicker();
+}
+
+function addLinkBatch() {
+  const teacher = document.getElementById("link-teacher").value;
+  const subject = document.getElementById("link-subject").value.trim();
+  const hours = parseInt(document.getElementById("link-hours").value, 10) || 2;
+  const groups = state.selectedLinkGroups.slice();
+
+  if (!teacher || !subject || !groups.length) {
+    return;
+  }
+
+  groups.forEach(group => {
+    state.links.push({ teacher, subject, group, hours });
+  });
+
   document.getElementById("link-subject").value = "";
   document.getElementById("link-hours").value = "2";
+  state.selectedLinkGroups = [];
+  renderGroupPicker();
   renderLinks();
 }
 
@@ -532,10 +583,10 @@ function removeLink(index) {
 function renderLinks() {
   document.getElementById("links-list").innerHTML = state.links.map((link, index) =>
     `<div class="link-row">
-      <span class="t">${escapeHtml(link.teacher)}</span><span class="sep">·</span>
-      <span class="s">${escapeHtml(link.subject)}</span><span class="sep">·</span>
-      <span class="g">${escapeHtml(link.group)}</span><span class="sep">·</span>
-      <span class="h">${link.hours}ч</span>
+      <span class="t">${escapeHtml(link.teacher)}</span><span class="sep">→</span>
+      <span class="s">${escapeHtml(link.subject)}</span><span class="sep">→</span>
+      <span class="g">${escapeHtml(link.group)}</span><span class="sep">→</span>
+      <span class="h">${link.hours}ч подряд</span>
       <button onclick="removeLink(${index})">×</button>
     </div>`
   ).join("");
@@ -687,6 +738,8 @@ async function generate() {
     btn.textContent = "Пересоздать расписание";
   }
 }
+
+renderGroupPicker();
 </script>
 </body>
 </html>
