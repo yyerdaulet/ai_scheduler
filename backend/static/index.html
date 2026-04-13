@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,6 +26,16 @@
 
   .logo { font-size: 15px; font-weight: 500; }
   .header-sub { font-size: 12px; color: #888; }
+  .header-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .lang-switch {
+    height: 30px;
+    min-width: 92px;
+    font-size: 12px;
+  }
 
   .layout {
     display: grid;
@@ -379,70 +389,76 @@
 <body>
 <header>
   <span class="logo">AI Scheduler</span>
-  <span class="header-sub">Пн – Сб · 08:00 – 18:50</span>
+  <div class="header-tools">
+    <span class="header-sub" data-i18n="headerSub">Пн – Сб · 08:00 – 18:50</span>
+    <select id="lang-select" class="lang-switch" onchange="setLanguage(this.value)">
+      <option value="ru">Рус</option>
+      <option value="kk" selected>Қаз</option>
+    </select>
+  </div>
 </header>
 
 <div class="layout">
   <div class="panel">
     <div class="field">
-      <label>Преподаватели</label>
+      <label data-i18n="teachersLabel">Преподаватели</label>
       <div class="chip-row" id="teachers-chips"></div>
       <div class="inline-add">
-        <input id="teacher-inp" placeholder="Имя преподавателя" onkeydown="if(event.key==='Enter') addChip('teacher')">
+        <input id="teacher-inp" data-i18n-placeholder="teacherPlaceholder" placeholder="Имя преподавателя" onkeydown="if(event.key==='Enter') addChip('teacher')">
         <button class="btn-add" onclick="addChip('teacher')">+</button>
       </div>
     </div>
 
     <div class="field">
-      <label>Группы</label>
+      <label data-i18n="groupsLabel">Группы</label>
       <div class="chip-row" id="groups-chips"></div>
       <div class="inline-add">
-        <input id="group-inp" placeholder="Название группы" onkeydown="if(event.key==='Enter') addChip('group')">
+        <input id="group-inp" data-i18n-placeholder="groupPlaceholder" placeholder="Название группы" onkeydown="if(event.key==='Enter') addChip('group')">
         <button class="btn-add" onclick="addChip('group')">+</button>
       </div>
     </div>
 
     <div class="field">
-      <label>Кабинеты</label>
+      <label data-i18n="roomsLabel">Кабинеты</label>
       <div class="chip-row" id="rooms-chips"></div>
       <div class="inline-add">
-        <input id="room-inp" placeholder="Номер / название" onkeydown="if(event.key==='Enter') addChip('room')">
+        <input id="room-inp" data-i18n-placeholder="roomPlaceholder" placeholder="Номер / название" onkeydown="if(event.key==='Enter') addChip('room')">
         <button class="btn-add" onclick="addChip('room')">+</button>
       </div>
     </div>
 
     <div class="field">
-      <label>Связки <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;font-size:10px">препод · предмет · группы · ч подряд на каждую группу</span></label>
+      <label><span data-i18n="linksLabel">Связки</span> <span data-i18n="linksHint" style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;font-size:10px">препод · предмет · группы · ч подряд на каждую группу</span></label>
       <div class="links-list" id="links-list"></div>
       <div class="link-form">
         <select id="link-teacher"><option value="">Препод</option></select>
-        <input id="link-subject" placeholder="Предмет" onkeydown="if(event.key==='Enter') addLinkBatch()">
+        <input id="link-subject" data-i18n-placeholder="subjectPlaceholder" placeholder="Предмет" onkeydown="if(event.key==='Enter') addLinkBatch()">
         <input id="link-hours" type="number" min="1" max="8" value="2">
         <button class="btn-add" onclick="addLinkBatch()">+</button>
       </div>
       <div class="link-groups-picker">
-        <div class="picker-label">Группы для этой связки</div>
+        <div class="picker-label" data-i18n="groupsForLink">Группы для этой связки</div>
         <div class="group-picker-row" id="link-groups-picker"></div>
       </div>
       <div class="links-total" id="links-total"></div>
     </div>
 
     <div class="field">
-      <label>Исключения</label>
+      <label data-i18n="exceptionsLabel">Исключения</label>
       <div class="exc-list" id="exc-list"></div>
       <div class="inline-add">
-        <input id="exc-inp" placeholder="напр. Алиев — суббота" onkeydown="if(event.key==='Enter') addException()">
+        <input id="exc-inp" data-i18n-placeholder="exceptionPlaceholder" placeholder="напр. Алиев — суббота" onkeydown="if(event.key==='Enter') addException()">
         <button class="btn-add" onclick="addException()">+</button>
       </div>
     </div>
 
-    <button class="btn-generate" id="gen-btn" onclick="generate()">Создать расписание</button>
+    <button class="btn-generate" id="gen-btn" onclick="generate()" data-i18n="generateBtn">Создать расписание</button>
     <div class="error" id="error-msg"></div>
   </div>
 
   <div class="panel">
     <div class="result-header">
-      <span class="result-title" id="result-title">Расписание</span>
+      <span class="result-title" id="result-title" data-i18n="resultTitle">Расписание</span>
       <div class="result-tools">
         <select id="filter-select" style="height:28px;font-size:12px;border:1px solid #e5e5e5;border-radius:6px;padding:0 8px;display:none" onchange="renderResult()">
           <option value="">Все группы</option>
@@ -451,7 +467,7 @@
       </div>
     </div>
     <div id="result-content">
-      <div class="empty">Сгенерированное расписание появится здесь</div>
+      <div class="empty" id="initial-empty" data-i18n="initialEmpty">Сгенерированное расписание появится здесь</div>
     </div>
   </div>
 </div>
@@ -461,6 +477,123 @@ const state = { teachers: [], groups: [], rooms: [], links: [], exceptions: [], 
 let reasoningData = [];
 let showReasoning = false;
 let scheduleData = {};
+let currentLang = "kk";
+let isGenerating = false;
+
+const i18n = {
+  ru: {
+    headerSub: "Пн – Сб · 08:00 – 18:50",
+    teachersLabel: "Преподаватели",
+    teacherPlaceholder: "Имя преподавателя",
+    groupsLabel: "Группы",
+    groupPlaceholder: "Название группы",
+    roomsLabel: "Кабинеты",
+    roomPlaceholder: "Номер / название",
+    linksLabel: "Связки",
+    linksHint: "препод · предмет · группы · ч подряд на каждую группу",
+    subjectPlaceholder: "Предмет",
+    teacherShort: "Препод",
+    groupsForLink: "Группы для этой связки",
+    addGroupsFirst: "Сначала добавьте группы",
+    exceptionsLabel: "Исключения",
+    exceptionPlaceholder: "напр. Алиев — суббота",
+    generateBtn: "Создать расписание",
+    regenerateBtn: "Пересоздать расписание",
+    resultTitle: "Расписание",
+    allGroups: "Все группы",
+    reasoningBtn: "Логика агента",
+    scheduleBtn: "Расписание",
+    initialEmpty: "Сгенерированное расписание появится здесь",
+    noReasoning: "Логика агента пока недоступна",
+    emptySchedule: "Расписание пусто",
+    noLessonsForGroup: "По выбранной группе занятий нет",
+    fillRequired: "Заполните преподавателей, группы, кабинеты и хотя бы одну связку",
+    agentWorking: "Агент работает...",
+    buildingSchedule: "Составляем расписание...",
+    connectionError: "Ошибка соединения с сервером",
+    hoursSequential: "ч подряд",
+    linksTotal: (count, total) => `${count} связок · ${total} ч/нед`,
+    reasoningTitle: "Логика агента",
+    tableTime: "Время",
+    tableTeacher: "Преподаватель",
+    tableSubject: "Предмет",
+    tableGroup: "Группа",
+    tableRoom: "Кабинет",
+  },
+  kk: {
+    headerSub: "Дс – Сб · 08:00 – 18:50",
+    teachersLabel: "Мұғалімдер",
+    teacherPlaceholder: "Мұғалімнің аты",
+    groupsLabel: "Топтар",
+    groupPlaceholder: "Топ атауы",
+    roomsLabel: "Кабинеттер",
+    roomPlaceholder: "Нөмірі / атауы",
+    linksLabel: "Байланыстар",
+    linksHint: "мұғалім · пән · топтар · әр топқа қатар сағат",
+    subjectPlaceholder: "Пән",
+    teacherShort: "Мұғалім",
+    groupsForLink: "Осы байланысқа арналған топтар",
+    addGroupsFirst: "Алдымен топтарды қосыңыз",
+    exceptionsLabel: "Шектеулер",
+    exceptionPlaceholder: "мысалы, Әлиев — сенбі",
+    generateBtn: "Кесте құру",
+    regenerateBtn: "Кестені қайта құру",
+    resultTitle: "Кесте",
+    allGroups: "Барлық топтар",
+    reasoningBtn: "Агент логикасы",
+    scheduleBtn: "Кесте",
+    initialEmpty: "Құрылған кесте осы жерде көрсетіледі",
+    noReasoning: "Агент логикасы әзірге қолжетімсіз",
+    emptySchedule: "Кесте бос",
+    noLessonsForGroup: "Таңдалған топ үшін сабақтар жоқ",
+    fillRequired: "Мұғалімдерді, топтарды, кабинеттерді және кемінде бір байланысты толтырыңыз",
+    agentWorking: "Агент жұмыс істеп жатыр...",
+    buildingSchedule: "Кесте құрылып жатыр...",
+    connectionError: "Сервермен байланысу қатесі",
+    hoursSequential: "сағ қатар",
+    linksTotal: (count, total) => `${count} байланыс · ${total} сағ/апта`,
+    reasoningTitle: "Агент логикасы",
+    tableTime: "Уақыты",
+    tableTeacher: "Мұғалім",
+    tableSubject: "Пән",
+    tableGroup: "Топ",
+    tableRoom: "Кабинет",
+  }
+};
+
+function t(key, ...args) {
+  const value = i18n[currentLang][key];
+  return typeof value === "function" ? value(...args) : value;
+}
+
+function setLanguage(lang) {
+  currentLang = lang in i18n ? lang : "ru";
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll("[data-i18n]").forEach(node => {
+    node.textContent = t(node.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(node => {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
+  });
+  syncStaticUiText();
+  updateLinkSelects();
+  renderGroupPicker();
+  renderLinks();
+  renderResult();
+}
+
+function syncStaticUiText() {
+  const filterSelect = document.getElementById("filter-select");
+  const currentValue = filterSelect.value;
+  filterSelect.innerHTML = `<option value="">${escapeHtml(t("allGroups"))}</option>` + state.groups
+    .map(group => `<option value="${escapeHtml(group)}"${group === currentValue ? " selected" : ""}>${escapeHtml(group)}</option>`)
+    .join("");
+
+  const btn = document.getElementById("gen-btn");
+  btn.textContent = isGenerating ? t("agentWorking") : (scheduleData.schedule ? t("regenerateBtn") : t("generateBtn"));
+
+  document.getElementById("btn-reasoning").textContent = showReasoning ? t("scheduleBtn") : t("reasoningBtn");
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -525,7 +658,7 @@ function updateLinkSelects() {
   const teacherSelect = document.getElementById("link-teacher");
   const teacherValue = state.teachers.includes(teacherSelect.value) ? teacherSelect.value : "";
 
-  teacherSelect.innerHTML = '<option value="">Препод</option>' + state.teachers
+  teacherSelect.innerHTML = `<option value="">${escapeHtml(t("teacherShort"))}</option>` + state.teachers
     .map(teacher => `<option value="${escapeHtml(teacher)}"${teacher === teacherValue ? " selected" : ""}>${escapeHtml(teacher)}</option>`)
     .join("");
   state.selectedLinkGroups = state.selectedLinkGroups.filter(group => state.groups.includes(group));
@@ -535,7 +668,7 @@ function updateLinkSelects() {
 function renderGroupPicker() {
   const picker = document.getElementById("link-groups-picker");
   if (!state.groups.length) {
-    picker.innerHTML = '<span style="font-size:12px;color:#aaa">Сначала добавьте группы</span>';
+    picker.innerHTML = `<span style="font-size:12px;color:#aaa">${escapeHtml(t("addGroupsFirst"))}</span>`;
     return;
   }
 
@@ -586,14 +719,14 @@ function renderLinks() {
       <span class="t">${escapeHtml(link.teacher)}</span><span class="sep">→</span>
       <span class="s">${escapeHtml(link.subject)}</span><span class="sep">→</span>
       <span class="g">${escapeHtml(link.group)}</span><span class="sep">→</span>
-      <span class="h">${link.hours}ч подряд</span>
+      <span class="h">${link.hours} ${escapeHtml(t("hoursSequential"))}</span>
       <button onclick="removeLink(${index})">×</button>
     </div>`
   ).join("");
 
   const total = state.links.reduce((sum, link) => sum + link.hours, 0);
   document.getElementById("links-total").textContent = state.links.length
-    ? `${state.links.length} связок · ${total} ч/нед`
+    ? t("linksTotal", state.links.length, total)
     : "";
 }
 
@@ -620,7 +753,7 @@ function renderExceptions() {
 
 function toggleReasoning() {
   showReasoning = !showReasoning;
-  document.getElementById("btn-reasoning").textContent = showReasoning ? "Расписание" : "Логика агента";
+  document.getElementById("btn-reasoning").textContent = showReasoning ? t("scheduleBtn") : t("reasoningBtn");
   renderResult();
 }
 
@@ -630,16 +763,16 @@ function renderResult() {
   if (showReasoning) {
     area.innerHTML = reasoningData.length
       ? `<div class="reasoning-box">
-          <div class="r-title">Логика агента</div>
+          <div class="r-title">${escapeHtml(t("reasoningTitle"))}</div>
           ${reasoningData.map(step => `<div class="r-step">${escapeHtml(step)}</div>`).join("")}
         </div>`
-      : '<div class="empty">Логика агента пока недоступна</div>';
+      : `<div class="empty">${escapeHtml(t("noReasoning"))}</div>`;
     return;
   }
 
   const days = scheduleData.schedule || [];
   if (!days.length) {
-    area.innerHTML = '<div class="empty">Расписание пусто</div>';
+    area.innerHTML = `<div class="empty">${escapeHtml(t("emptySchedule"))}</div>`;
     return;
   }
 
@@ -661,11 +794,11 @@ function renderResult() {
       <table>
         <thead>
           <tr>
-            <th>Время</th>
-            <th>Преподаватель</th>
-            <th>Предмет</th>
-            <th>Группа</th>
-            <th>Кабинет</th>
+            <th>${escapeHtml(t("tableTime"))}</th>
+            <th>${escapeHtml(t("tableTeacher"))}</th>
+            <th>${escapeHtml(t("tableSubject"))}</th>
+            <th>${escapeHtml(t("tableGroup"))}</th>
+            <th>${escapeHtml(t("tableRoom"))}</th>
           </tr>
         </thead>
         <tbody>`;
@@ -684,7 +817,7 @@ function renderResult() {
     html += "</tbody></table></div>";
   });
 
-  area.innerHTML = html || '<div class="empty">По выбранной группе занятий нет</div>';
+  area.innerHTML = html || `<div class="empty">${escapeHtml(t("noLessonsForGroup"))}</div>`;
 }
 
 async function generate() {
@@ -692,7 +825,7 @@ async function generate() {
   const err = document.getElementById("error-msg");
 
   if (!teachers.length || !groups.length || !rooms.length || !links.length) {
-    err.textContent = "Заполните преподавателей, группы, кабинеты и хотя бы одну связку";
+    err.textContent = t("fillRequired");
     return;
   }
 
@@ -702,13 +835,14 @@ async function generate() {
   const filterSelect = document.getElementById("filter-select");
   const reasoningBtn = document.getElementById("btn-reasoning");
 
+  isGenerating = true;
   btn.disabled = true;
-  btn.textContent = "Агент работает...";
+  btn.textContent = t("agentWorking");
   showReasoning = false;
-  reasoningBtn.textContent = "Логика агента";
+  reasoningBtn.textContent = t("reasoningBtn");
   reasoningBtn.style.display = "none";
   filterSelect.value = "";
-  document.getElementById("result-content").innerHTML = '<div class="loading"><div class="spinner"></div>Составляем расписание...</div>';
+  document.getElementById("result-content").innerHTML = `<div class="loading"><div class="spinner"></div>${escapeHtml(t("buildingSchedule"))}</div>`;
 
   try {
     const res = await fetch("/api/generate", {
@@ -721,9 +855,7 @@ async function generate() {
     scheduleData = data || {};
     reasoningData = data.reasoning || [];
 
-    filterSelect.innerHTML = '<option value="">Все группы</option>' + state.groups
-      .map(group => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`)
-      .join("");
+    syncStaticUiText();
     filterSelect.style.display = "";
 
     if (reasoningData.length) {
@@ -732,14 +864,16 @@ async function generate() {
 
     renderResult();
   } catch (error) {
-    document.getElementById("result-content").innerHTML = '<div class="empty" style="color:#c00">Ошибка соединения с сервером</div>';
+    document.getElementById("result-content").innerHTML = `<div class="empty" style="color:#c00">${escapeHtml(t("connectionError"))}</div>`;
   } finally {
+    isGenerating = false;
     btn.disabled = false;
-    btn.textContent = "Пересоздать расписание";
+    btn.textContent = t("regenerateBtn");
   }
 }
 
 renderGroupPicker();
+setLanguage("kk");
 </script>
 </body>
 </html>
